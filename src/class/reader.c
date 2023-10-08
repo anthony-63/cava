@@ -2,8 +2,6 @@
 
 CavaClassReader* class_reader_init(const char* file_name) {
     CavaClassReader* reader = (CavaClassReader*)malloc(sizeof(reader));
-    reader->file_name = (char*)malloc(strlen(file_name));
-    strcpy(reader->file_name, file_name);
 
     reader->index = 0;
 
@@ -61,6 +59,39 @@ uint32_t class_reader_get_u32(CavaClassReader* reader) {
     bytes[2] = reader->bytes[reader->index++];
     bytes[1] = reader->bytes[reader->index++];
     bytes[0] = reader->bytes[reader->index++];
+
+    memcpy(&res, &bytes, sizeof(res));
+    return res;
+}
+
+uint16_t class_reader_get_u16_little(CavaClassReader* reader) {
+    uint16_t res = 0;
+    uint8_t bytes[2];
+    
+    if(reader->index + 1 >= reader->bytes_length) {
+        fprintf(stderr, "Tried to read past file bounds with index of %d and a file size of %d\n", reader->index + 1, reader->bytes_length);
+        exit(-1);
+    }
+
+    bytes[0] = reader->bytes[reader->index++];
+    bytes[1] = reader->bytes[reader->index++];
+    memcpy(&res, &bytes, sizeof(res));
+    return res;
+}
+
+uint32_t class_reader_get_u32_little(CavaClassReader* reader) {
+    uint32_t res = 0;
+    uint8_t bytes[4];
+    
+    if(reader->index + 3 >= reader->bytes_length) {
+        fprintf(stderr, "Tried to read past file bounds with index of %d and a file size of %d\n", reader->index + 3, reader->bytes_length);
+        exit(-1);
+    }
+
+    bytes[0] = reader->bytes[reader->index++];
+    bytes[1] = reader->bytes[reader->index++];
+    bytes[2] = reader->bytes[reader->index++];
+    bytes[3] = reader->bytes[reader->index++];
 
     memcpy(&res, &bytes, sizeof(res));
     return res;

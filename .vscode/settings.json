@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "constant_pool.h": "c",
+        "reader.h": "c",
+        "inttypes.h": "c"
+    }
+}

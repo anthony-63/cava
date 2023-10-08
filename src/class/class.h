@@ -9,7 +9,7 @@ typedef struct {
     uint16_t minor_version;
     uint16_t major_version;
     uint16_t constant_pool_count;
-    CavaConstantPoolInfo* consatnt_pool;
+    CavaConstantPoolInfo* constant_pool;
     uint16_t access_flags;
     uint16_t this_class;
     uint16_t super_class;
@@ -18,3 +18,4 @@ typedef struct {
 } CavaClassFile;
 
 CavaClassFile read_class_file(const char* file_name);
+void read_constant_pool(CavaClassFile* class, CavaClassReader* reader);

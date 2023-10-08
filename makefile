@@ -9,3 +9,8 @@ $(OUT): $(SRC)
 
 run: $(OUT)
 	./$(OUT) $(ARGS)
+
+debug:
+	if [ ! -d "bin" ]; then mkdir bin; fi
+	gcc -o $(OUT)_debug $(SRC) -g
+	gdb $(OUT)_debug

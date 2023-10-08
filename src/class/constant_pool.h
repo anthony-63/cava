@@ -1,5 +1,6 @@
 #pragma once
 
+#include "reader.h"
 #include <inttypes.h>
 
 typedef struct {
@@ -114,3 +115,5 @@ typedef enum {
     CavaConstantPoolTagMethodType = 16,
     CavaConstantPoolTagInvokeDynamic = 18,
 } CavaConstantPoolTags;
+
+extern const char* CavaConstantPoolTagStrings[18];
