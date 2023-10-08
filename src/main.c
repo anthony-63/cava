@@ -1,5 +1,6 @@
 #include <stdio.h>
+#include "class/class.h"
 
 int main() {
-    printf("Hello world!\n");
+    CavaClassFile class = read_class_file("test/Test.class");
 }
