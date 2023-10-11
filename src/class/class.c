@@ -2,6 +2,7 @@
 #include "reader.h"
 
 #include <assert.h>
+#include "../xplatform/dirent.h"
 
 extern int debugging;
 
@@ -21,9 +22,63 @@ int is_class_file(char* s) {
     return 0;
 }
 
-CavaClassFile* read_class_path(const char* folder) {
-
+void get_classfile_dependencies(char** dest, CavaClassFile file) {
+    char* this_class = "";
+    for(int i = 0; i < file.constant_pool_count; i++) {
+        if(file.constant_pool[i].class_info.tag == CavaConstantPoolTagClass && i == file.this_class - 1) {
+            this_class = resolve_utf8(file, file.constant_pool[i].class_info.name_index);
+        } else if(file.constant_pool[i].class_info.tag == CavaConstantPoolTagClass) {
+            printf("Depends on: %s\n", resolve_utf8(file, file.constant_pool[i].class_info.name_index));
+        }
+    }
 }
+
+char* resolve_utf8(CavaClassFile file, int index) {
+    if(index >= file.constant_pool_count - 1){
+        fprintf(stderr, "Invalid index in constant pool: %d\n", index);
+        exit(-1);
+    }
+    if(file.constant_pool[index - 1].utf8_info.tag != CavaConstantPoolTagUtf8) {
+        fprintf(stderr, "Invalid UTF8 index in constant pool expected type %s at index %d but got type %s\n", CavaConstantPoolTagStrings[CavaConstantPoolTagUtf8 - 1], index, CavaConstantPoolTagStrings[file.constant_pool[index].utf8_info.tag - 1]);
+        exit(-1);
+    }
+    return (char*)file.constant_pool[index-1].utf8_info.bytes;
+}
+
+void load_classpath(CavaClassFile* dest, char* classpath, int* count) {
+    DIR *dir;
+    struct dirent *entry;
+
+    if (!(dir = opendir(classpath))){
+        printf("INVALID_DIR: %s", classpath);
+        exit(1);
+    }
+
+    while ((entry = readdir(dir)) != NULL) {
+        if (entry->d_type == DT_DIR) {
+            char path[1024];
+            if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0)
+                continue;
+            sprintf(path, "%s/%s", classpath, entry->d_name);
+            load_classpath(dest, path, count);
+        } else {
+            if(!is_class_file(entry->d_name)) continue;
+            (*count)++;
+            char path[1024];
+            // printf("ALLOC F: %08x | '%s'\n", path, entry->d_name);
+            sprintf(path, "%s/%s", classpath, entry->d_name);
+            // printf("%s: %s\n", classpath, entry->d_name);
+            if(dest == NULL) continue;
+            printf("Loading: %s\n", path);
+            dest[(*count)-1] = read_class_file(path);
+            printf("Loaded: %s\n", path);
+            printf("Getting dependencies for: %s\n", path);
+            get_classfile_dependencies(NULL, dest[(*count)-1]);
+        }
+    }
+    closedir(dir);
+}
+
 
 CavaClassFile read_class_file(const char* file_name) {
     CavaClassReader* reader = class_reader_init(file_name);
@@ -58,8 +113,8 @@ CavaClassFile read_class_file(const char* file_name) {
 
     class.interfaces_count = class_reader_get_u16(reader);
     if(class.interfaces_count > 0) {
-        fprintf(stderr, "Cava does not support interfaces yet!");
-        exit(-1);
+        fprintf(stderr, "Cava does not support interfaces yet!\n");
+        // exit(-1);
     }
 
     return class;
@@ -161,6 +216,6 @@ void read_constant_pool(CavaClassFile* class, CavaClassReader* reader) {
             printf("INVALID TAG: %d\n", tag);
             exit(-1);
         }
-        printf("\n");
+       if(debugging) printf("\n");
     }
 }

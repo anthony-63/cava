@@ -6,16 +6,18 @@ ARGS = test/Test.class
 JDK_DIR = jdk-21/
 
 $(OUT): $(SRC)
-	if [ ! -d "bin" ]; then mkdir bin; fi
-	gcc -o $(OUT) $(SRC)
+	@if [ ! -d "bin" ]; then mkdir bin; fi
+	@gcc -o $(OUT) $(SRC) -std=c99
 
 run: $(OUT)
-	./$(OUT) $(ARGS)
+	@./$(OUT) $(ARGS)
 
-jdk: $(JDK_DIR)
-	javac -sourcepath $(JDK_DIR)
+dbgnogdb: $(OUT)
+	@if [ ! -d "bin" ]; then mkdir bin; fi
+	@gcc -o $(OUT)_debug $(SRC) -g -std=c99 -Wall -Wextra -Wpedantic -Werror -Wshadow -Wformat=2 -Wconversion -Wunused-parameter -fsanitize=address,undefined
+	@./$(OUT) $(ARGS)
 
 debug:
-	if [ ! -d "bin" ]; then mkdir bin; fi
-	gcc -o $(OUT)_debug $(SRC) -g
+	@if [ ! -d "bin" ]; then mkdir bin; fi
+	@gcc -o $(OUT)_debug $(SRC) -g -std=c99
 	gdb $(OUT)_debug

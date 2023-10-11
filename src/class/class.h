@@ -17,6 +17,8 @@ typedef struct {
     uint16_t* interfaces;
 } CavaClassFile;
 
-CavaClassFile* read_class_path(const char* folder);
+void load_classpath(CavaClassFile* dest, char* classpath, int* count);
+void get_classfile_dependencies(char** dest, CavaClassFile file);
+char* resolve_utf8(CavaClassFile file, int index);
 CavaClassFile read_class_file(const char* file_name);
 void read_constant_pool(CavaClassFile* class, CavaClassReader* reader);
